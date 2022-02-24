@@ -1,9 +1,9 @@
-import { SignupDto } from './../account/dto/accounts.dto';
+import { SignupDto, UpdateProfileDto } from './../account/dto/accounts.dto';
 import { SendMailService } from '../services/mail';
 import { CacheService } from '../services/caching';
 import { Account } from './account.entity';
 import { LoginDto } from './dto/accounts.dto';
-import { BadGatewayException, ConflictException, ForbiddenException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, ConflictException, ForbiddenException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import Jwt from 'src/services/jwt-passport';
@@ -43,6 +43,21 @@ export class AccountService {
             if (excludeFields.some((excludeField => excludeField === field))) delete data[`${field}`]
         })
         return data
+    }
+
+
+    async updateProfile(updateProfileDto: UpdateProfileDto, id: string): Promise<Account> {
+        try {
+            let oldUserData = await this.repository.findOne(id)
+            console.log(updateProfileDto);
+
+            return oldUserData
+
+
+        }
+        catch (e) {
+            throw new BadRequestException(e.message)
+        }
     }
 
     async getOTPSignup(email: string) {

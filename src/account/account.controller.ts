@@ -1,8 +1,9 @@
+import { Account } from './../account/account.entity';
 import { AuthGuard, Public } from './../services/guard';
-import { GetOTPSignUpDto, LoginDto, SignupDto } from './../account/dto/accounts.dto';
+import { GetOTPSignUpDto, LoginDto, SignupDto, UpdateProfileDto } from './../account/dto/accounts.dto';
 import { AccountService } from './../account/accounts.service';
 import { HeaderHandlerService } from './../services/headerHandler';
-import { Body, Controller, Post, UseGuards, Get, NotFoundException, Headers } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Get, NotFoundException, Headers, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @Controller('accounts')
@@ -38,6 +39,14 @@ export class AccountsController {
         const userId = this.headerHandlerService.getUserId(headers)
         if (!userId) throw new NotFoundException()
         return this.accountService.getProfile(userId)
+    }
+
+
+    @Patch("profile")
+    async updateProfile(@Body() body: UpdateProfileDto, @Headers() headers): Promise<Account> {
+        const userId = this.headerHandlerService.getUserId(headers)
+        if (!userId) throw new NotFoundException()
+        return this.accountService.updateProfile(body, userId)
     }
 
 }
