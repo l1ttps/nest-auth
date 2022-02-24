@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountsController } from './account/account.controller';
 import { AccountsModule } from './account/account.module';
 import { AccountService } from './account/accounts.service';
+import { ThrottlerModule } from '@nestjs/throttler';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,6 +24,10 @@ import { AccountService } from './account/accounts.service';
       ],
       keepConnectionAlive: true,
       synchronize: true,
+    }),
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 5,
     }),
     AccountsModule,
   ],

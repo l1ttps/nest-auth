@@ -5,11 +5,13 @@ import { AccountService } from './../account/accounts.service';
 import { HeaderHandlerService } from './../services/headerHandler';
 import { Body, Controller, Post, UseGuards, Get, NotFoundException, Headers, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('accounts')
 @ApiBearerAuth()
-@ApiTags('authentication')
+@ApiTags('accounts')
 @UseGuards(AuthGuard)
+@UseGuards(ThrottlerGuard)
 export class AccountsController {
     constructor(
         private accountService: AccountService,
