@@ -2,7 +2,7 @@ import { AuthGuard, Public } from './../services/guard';
 import { GetOTPSignUpDto, LoginDto, SignupDto } from './../account/dto/accounts.dto';
 import { AccountService } from './../account/accounts.service';
 import { HeaderHandlerService } from './../services/headerHandler';
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Get, NotFoundException, Headers } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @Controller('accounts')
@@ -31,6 +31,13 @@ export class AccountsController {
     @Public()
     async login(@Body() loginDto: LoginDto): Promise<{}> {
         return this.accountService.login(loginDto)
+    }
+
+    @Get("profile")
+    async profile(@Headers() headers) {
+        const userId = this.headerHandlerService.getUserId(headers)
+        if (!userId) throw new NotFoundException()
+        return this.accountService.getProfile(userId)
     }
 
 }

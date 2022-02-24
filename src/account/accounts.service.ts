@@ -3,7 +3,7 @@ import { SendMailService } from '../services/mail';
 import { CacheService } from '../services/caching';
 import { Account } from './account.entity';
 import { LoginDto } from './dto/accounts.dto';
-import { BadGatewayException, ConflictException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadGatewayException, ConflictException, ForbiddenException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import Jwt from 'src/services/jwt-passport';
@@ -18,12 +18,32 @@ interface LoginResponse {
 }
 const TTL_TOKEN = 1
 const TTL_RFTOKEN = 30
+const excludeFields = ["secretKey", "password", "secretKeyRft", "salt"]
+
 @Injectable()
 export class AccountService {
     constructor(@InjectRepository(Account) private repository: Repository<Account>,
         private cacheService: CacheService,
         private sendMailService: SendMailService
     ) { }
+
+    async getProfile(id: string) {
+        try {
+            const data = await this.repository.findOne(id)
+            if (!!data) return this.responseUserData(data)
+            throw new ForbiddenException()
+        }
+        catch (e) {
+            throw new ForbiddenException()
+        }
+    }
+
+    responseUserData = (data: Account) => {
+        Object.keys(data).forEach((field: string) => {
+            if (excludeFields.some((excludeField => excludeField === field))) delete data[`${field}`]
+        })
+        return data
+    }
 
     async getOTPSignup(email: string) {
         var randomize = require('randomatic');
@@ -92,4 +112,6 @@ export class AccountService {
             refreshToken: Jwt.generate(account.id, account.secretKeyRft, TTL_RFTOKEN),
         }
     }
+
+
 }
