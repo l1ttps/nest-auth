@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountsController } from './accounts/accounts.controller';
 import { AccountsService } from './accounts/accounts.service';
+import { AccountsModule } from './accounts/accounts.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,6 +24,7 @@ import { AccountsService } from './accounts/accounts.service';
       keepConnectionAlive: true,
       synchronize: true,
     }),
+    AccountsModule,
   ],
   controllers: [AppController, AccountsController],
   providers: [AppService, AccountsService],
