@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
+import { DeviceSessionsModule } from './device-sessions/device-sessions.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UsersModule } from './users/users.module';
       ssl: true,
     }),
     UsersModule,
+    DeviceSessionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

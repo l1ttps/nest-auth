@@ -2,19 +2,43 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { DeviceSessionsService } from 'src/device-sessions/device-sessions.service';
 import { Repository } from 'typeorm';
+import LoginDto from './dto/login.dto';
 import SignUpDto from './dto/sign-up.dto';
 import { UserEntity } from './user.entity';
+import { LoginMetadata } from './users.controller';
+
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity) private repository: Repository<UserEntity>,
+    private deviceSessionsService: DeviceSessionsService,
   ) {}
   async hashPassword(password: string, salt: string): Promise<string> {
     return bcrypt.hash(password, salt);
+  }
+
+  async login(loginDto: LoginDto, metaData: LoginMetadata) {
+    const { email, password } = loginDto;
+    const user = await this.repository.findOne({
+      where: { email },
+    });
+    if (
+      !user ||
+      user.password !== (await this.hashPassword(password, user.salt))
+    ) {
+      throw new UnauthorizedException('Email or password incorect');
+    } else {
+      return await this.deviceSessionsService.handleDeviceSession(
+        user.id,
+        metaData,
+      );
+    }
   }
 
   async signUp(signUpDto: SignUpDto) {

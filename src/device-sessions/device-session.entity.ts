@@ -6,17 +6,25 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('user')
-export class UserEntity {
+@Entity('device-session')
+export default class DeviceSessionEntity {
   @PrimaryColumn({ type: 'uuid' })
   @Generated('uuid')
   id: string;
   @Column({ unique: true })
-  email: string;
+  deviceId: string;
+  @Column({ nullable: true })
+  name: string;
   @Column()
-  password: string;
+  ua: string;
   @Column()
-  salt: string;
+  secretKey: string;
+  @Column()
+  refreshToken: string;
+  @Column()
+  expiredAt: Date;
+  @Column()
+  ipAddress: string;
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
   @UpdateDateColumn()
