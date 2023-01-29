@@ -9,7 +9,7 @@ import DeviceSessionEntity from './device-session.entity';
 const UAParser = require('ua-parser-js');
 const sha256 = require('crypto-js/sha256');
 const { randomUUID } = require('crypto');
-
+const EXP_SESSION = 7; // 1 week
 @Injectable()
 export class DeviceSessionsService {
   constructor(
@@ -40,7 +40,7 @@ export class DeviceSessionsService {
     });
 
     const expiredAt = new Date();
-    expiredAt.setDate(expiredAt.getDate() + 7);
+    expiredAt.setDate(expiredAt.getDate() + EXP_SESSION);
     const secretKey = this.generateSecretKey();
 
     const payload = {
@@ -70,5 +70,9 @@ export class DeviceSessionsService {
       ...newDeviceSession,
     });
     return { token, refreshToken, expiredAt, deviceId };
+  }
+
+  async getDeviceSessions() {
+    return this.repository.find();
   }
 }
