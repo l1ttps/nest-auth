@@ -1,7 +1,9 @@
+import DeviceSessionEntity from 'src/device-sessions/device-session.entity';
 import {
   Column,
   Entity,
   Generated,
+  OneToMany,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -21,4 +23,6 @@ export class UserEntity {
   createdAt: Date;
   @UpdateDateColumn()
   updatedAt: Date;
+  @OneToMany(() => DeviceSessionEntity, (deviceSessions) => deviceSessions.id)
+  deviceSessions: DeviceSessionEntity[];
 }

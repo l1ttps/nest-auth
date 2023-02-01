@@ -55,7 +55,7 @@ export class DeviceSessionsService {
     const parserResults = uaParser.getResult();
     const deviceName = `${parserResults.browser.name}_${parserResults.browser.version}`;
     const newDeviceSession = new DeviceSessionEntity();
-
+    newDeviceSession.user = userId;
     newDeviceSession.secretKey = secretKey;
     newDeviceSession.refreshToken = refreshToken;
     newDeviceSession.expiredAt = expiredAt;
@@ -73,6 +73,16 @@ export class DeviceSessionsService {
   }
 
   async getDeviceSessions() {
-    return this.repository.find();
+    return this.repository.find({
+      select: [
+        'id',
+        'createdAt',
+        'ipAddress',
+        'name',
+        'ua',
+        'expiredAt',
+        'updatedAt',
+      ],
+    });
   }
 }

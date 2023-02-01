@@ -1,7 +1,9 @@
+import { UserEntity } from 'src/users/user.entity';
 import {
   Column,
   Entity,
   Generated,
+  ManyToOne,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -29,4 +31,6 @@ export default class DeviceSessionEntity {
   createdAt: Date;
   @UpdateDateColumn()
   updatedAt: Date;
+  @ManyToOne(() => UserEntity, (user) => user.id)
+  user: string;
 }

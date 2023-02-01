@@ -1,6 +1,6 @@
 import * as jwt from 'jsonwebtoken';
 
-const EXP_2_MIN = 2 * 60;
+const EXP_2_MIN = 30 * 60;
 export class JwtStrategy {
   static generate(payload: object, serectKey: string) {
     return jwt.sign(

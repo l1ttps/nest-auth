@@ -7,6 +7,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   const config = new DocumentBuilder()
+    .addSecurity('bearer', {
+      type: 'http',
+      scheme: 'bearer',
+    })
     .setTitle('NestJS Authentication')
     .setVersion('1.0')
     .build();

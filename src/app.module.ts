@@ -3,8 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
+import { HeaderHandlerService } from './auth/guard/headerHandler';
 import { DeviceSessionsModule } from './device-sessions/device-sessions.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -27,6 +28,6 @@ import { DeviceSessionsModule } from './device-sessions/device-sessions.module';
     DeviceSessionsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, HeaderHandlerService],
 })
 export class AppModule {}
