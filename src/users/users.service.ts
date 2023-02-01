@@ -23,7 +23,7 @@ export class UsersService {
     return bcrypt.hash(password, salt);
   }
 
-  async login(loginDto: LoginDto, metaData: LoginMetadata) {
+  async login(loginDto: LoginDto, metaData: LoginMetadata, req) {
     const { email, password } = loginDto;
     const user = await this.repository.findOne({
       where: { email },
@@ -37,6 +37,7 @@ export class UsersService {
       return await this.deviceSessionsService.handleDeviceSession(
         user.id,
         metaData,
+        req,
       );
     }
   }

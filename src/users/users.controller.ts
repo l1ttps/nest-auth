@@ -22,7 +22,7 @@ export class UsersController {
     const ipAddress = req.connection.remoteAddress;
     const ua = headers['user-agent'];
     const metaData: LoginMetadata = { ipAddress, ua };
-    return this.usersService.login(loginDto, metaData);
+    return this.usersService.login(loginDto, metaData, req);
   }
 }
 

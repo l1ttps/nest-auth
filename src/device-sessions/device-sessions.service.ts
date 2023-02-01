@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import * as randomatic from 'randomatic';
+import { HeaderHandlerService } from 'src/auth/guard/headerHandler';
 import { JwtStrategy } from 'src/auth/guard/jwt.strategy';
 import { LoginMetadata } from 'src/users/users.controller';
 import { Repository } from 'typeorm';
@@ -15,26 +16,33 @@ export class DeviceSessionsService {
   constructor(
     @InjectRepository(DeviceSessionEntity)
     private repository: Repository<DeviceSessionEntity>,
+    private headerHandler: HeaderHandlerService,
   ) {}
 
   generateSecretKey(length = 16) {
     return randomatic('A0', length);
   }
 
-  generateDeviceId(userId: string, metaData: LoginMetadata) {
+  getDeviceId(req) {
+    const ipAddress = req.connection.remoteAddress;
+    const headers = req.headers;
+    const userId = this.headerHandler.getUserId(headers);
+    const ua = headers['user-agent'];
+    const metaData: LoginMetadata = { ipAddress, ua };
     return sha256(`${userId}-${metaData.ipAddress}-${metaData.ua}`).toString();
   }
 
   async handleDeviceSession(
     userId: string,
     metaData: LoginMetadata,
+    req,
   ): Promise<{
     token: string;
     refreshToken: string;
     expiredAt: Date;
     deviceId: string;
   }> {
-    const deviceId = this.generateDeviceId(userId, metaData);
+    const deviceId = this.getDeviceId(req);
     const currentDevice = await this.repository.findOne({
       where: { deviceId },
     });
@@ -76,6 +84,7 @@ export class DeviceSessionsService {
     return this.repository.find({
       select: [
         'id',
+        'deviceId',
         'createdAt',
         'ipAddress',
         'name',
