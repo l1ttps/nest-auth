@@ -23,10 +23,10 @@ export class DeviceSessionsService {
     return randomatic('A0', length);
   }
 
-  getDeviceId(req) {
+  getDeviceId(req, _userId?) {
     const ipAddress = req.connection.remoteAddress;
     const headers = req.headers;
-    const userId = this.headerHandler.getUserId(headers);
+    const userId = this.headerHandler.getUserId(headers) || _userId;
     const ua = headers['user-agent'];
     const metaData: LoginMetadata = { ipAddress, ua };
     return sha256(`${userId}-${metaData.ipAddress}-${metaData.ua}`).toString();
@@ -42,7 +42,7 @@ export class DeviceSessionsService {
     expiredAt: Date;
     deviceId: string;
   }> {
-    const deviceId = this.getDeviceId(req);
+    const deviceId = this.getDeviceId(req, userId);
     const currentDevice = await this.repository.findOne({
       where: { deviceId },
     });

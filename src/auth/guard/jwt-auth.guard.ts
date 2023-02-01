@@ -40,6 +40,7 @@ export class JwtAuthGuard implements CanActivate {
 
     const checkDeviceId = this.deviceSessionService.getDeviceId(request);
     const deviceId = this.headerHandlerService.getDeviceId(request.headers);
+    console.log(checkDeviceId, deviceId);
 
     if (checkDeviceId !== deviceId) {
       throw new UnauthorizedException('Token not issued for this device');
