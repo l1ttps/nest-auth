@@ -37,7 +37,6 @@ export class UsersService {
       return await this.deviceSessionsService.handleDeviceSession(
         user.id,
         metaData,
-        req,
       );
     }
   }

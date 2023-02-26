@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { HeaderHandlerService } from './auth/guard/headerHandler';
 import { DeviceSessionsModule } from './device-sessions/device-sessions.module';
 import { UsersModule } from './users/users.module';
 
@@ -31,6 +30,6 @@ import { UsersModule } from './users/users.module';
     DeviceSessionsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, HeaderHandlerService],
+  providers: [AppService],
 })
 export class AppModule {}

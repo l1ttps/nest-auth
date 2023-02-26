@@ -2,7 +2,6 @@ import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
 import DeviceSessionEntity from 'src/device-sessions/device-session.entity';
-import { DeviceSessionsService } from 'src/device-sessions/device-sessions.service';
 import { Repository } from 'typeorm';
 import { JwtStrategy } from './guard/jwt.strategy';
 
@@ -13,7 +12,6 @@ export default class AuthService {
     private cacheManager: Cache,
     @InjectRepository(DeviceSessionEntity)
     private deviceSessionsRepository: Repository<DeviceSessionEntity>,
-    private deviceSessionService: DeviceSessionsService,
   ) {}
 
   async getSecretKey(request): Promise<string> {

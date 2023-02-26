@@ -6,25 +6,24 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { DeviceSessionsService } from 'src/device-sessions/device-sessions.service';
 import AuthService from '../auth.service';
-import { HeaderHandlerService } from './headerHandler';
 import { JwtStrategy } from './jwt.strategy';
 
 const keyPublicRoute = 'isPublic';
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private authService: AuthService,
-    private deviceSessionService: DeviceSessionsService,
-    private headerHandlerService: HeaderHandlerService,
-  ) {}
+  constructor(private reflector: Reflector, private authService: AuthService) {}
 
   private async validateRequest(request): Promise<boolean> {
     const headers = request.headers;
     const token = headers.authorization || null;
     if (!token) return false;
+    const checkDeviceId = request.fingerprint.hash;
+    const deviceId = JwtStrategy.getPayload(request.headers)['deviceId'];
+
+    if (checkDeviceId !== deviceId) {
+      throw new UnauthorizedException('Token not issued for this device');
+    }
     try {
       const secretKey = await this.authService.getSecretKey(request);
       return !!JwtStrategy.verify(token, secretKey);
@@ -38,13 +37,6 @@ export class JwtAuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
 
-    const checkDeviceId = this.deviceSessionService.getDeviceId(request);
-    const deviceId = this.headerHandlerService.getDeviceId(request.headers);
-    console.log(checkDeviceId, deviceId);
-
-    if (checkDeviceId !== deviceId) {
-      throw new UnauthorizedException('Token not issued for this device');
-    }
     if (!(await this.validateRequest(request))) {
       throw new UnauthorizedException();
     }

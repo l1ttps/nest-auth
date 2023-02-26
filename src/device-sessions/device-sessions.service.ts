@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import * as randomatic from 'randomatic';
-import { HeaderHandlerService } from 'src/auth/guard/headerHandler';
+import AuthService from 'src/auth/auth.service';
 import { JwtStrategy } from 'src/auth/guard/jwt.strategy';
+import addDay from 'src/helpers/addDay';
 import { LoginMetadata } from 'src/users/users.controller';
 import { Repository } from 'typeorm';
 import DeviceSessionEntity from './device-session.entity';
@@ -11,44 +13,60 @@ const UAParser = require('ua-parser-js');
 const sha256 = require('crypto-js/sha256');
 const { randomUUID } = require('crypto');
 const EXP_SESSION = 7; // 1 week
+
+@ApiBearerAuth()
 @Injectable()
 export class DeviceSessionsService {
   constructor(
+    // @Inject(CACHE_MANAGER)
+    // private cacheManager: Cache,
     @InjectRepository(DeviceSessionEntity)
     private repository: Repository<DeviceSessionEntity>,
-    private headerHandler: HeaderHandlerService,
+    private authService: AuthService,
   ) {}
 
   generateSecretKey(length = 16) {
     return randomatic('A0', length);
   }
 
-  getDeviceId(req, _userId?) {
-    const ipAddress = req.connection.remoteAddress;
-    const headers = req.headers;
-    const userId = this.headerHandler.getUserId(headers) || _userId;
-    const ua = headers['user-agent'];
-    const metaData: LoginMetadata = { ipAddress, ua };
-    return sha256(`${userId}-${metaData.ipAddress}-${metaData.ua}`).toString();
+  async logout(userId: string, sessionId: string) {
+    const session = await this.repository.findOne({
+      where: {
+        user: userId,
+        id: sessionId,
+      },
+    });
+    console.log(session);
+
+    if (!session) {
+      throw new ForbiddenException();
+    }
+    const keyCache = this.authService.getKeyCache(userId, session.deviceId);
+    console.log(keyCache);
+
+    await this.repository.delete(sessionId);
+    return {
+      message: 'Logout success',
+      status: 200,
+      sessionId,
+    };
   }
 
   async handleDeviceSession(
     userId: string,
     metaData: LoginMetadata,
-    req,
   ): Promise<{
     token: string;
     refreshToken: string;
     expiredAt: Date;
     deviceId: string;
   }> {
-    const deviceId = this.getDeviceId(req, userId);
+    const { deviceId } = metaData;
     const currentDevice = await this.repository.findOne({
       where: { deviceId },
     });
 
-    const expiredAt = new Date();
-    expiredAt.setDate(expiredAt.getDate() + EXP_SESSION);
+    const expiredAt = addDay(7);
     const secretKey = this.generateSecretKey();
 
     const payload = {
@@ -59,9 +77,8 @@ export class DeviceSessionsService {
       JwtStrategy.generate(payload, secretKey),
       randomatic('Aa0', 64),
     ];
-    const uaParser = new UAParser(metaData.ua);
-    const parserResults = uaParser.getResult();
-    const deviceName = `${parserResults.browser.name}_${parserResults.browser.version}`;
+
+    const deviceName = metaData.deviceId;
     const newDeviceSession = new DeviceSessionEntity();
     newDeviceSession.user = userId;
     newDeviceSession.secretKey = secretKey;

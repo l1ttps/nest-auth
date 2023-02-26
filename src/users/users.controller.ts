@@ -19,9 +19,11 @@ export class UsersController {
     @Body() loginDto: LoginDto,
     @Headers() headers: Headers,
   ) {
+    const fingerprint = req.fingerprint;
     const ipAddress = req.connection.remoteAddress;
     const ua = headers['user-agent'];
-    const metaData: LoginMetadata = { ipAddress, ua };
+    const deviceId = fingerprint.hash;
+    const metaData: LoginMetadata = { ipAddress, ua, deviceId };
     return this.usersService.login(loginDto, metaData, req);
   }
 }
@@ -29,4 +31,5 @@ export class UsersController {
 export interface LoginMetadata {
   ipAddress: string;
   ua: string;
+  deviceId: string;
 }

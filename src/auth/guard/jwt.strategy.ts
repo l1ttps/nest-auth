@@ -14,4 +14,8 @@ export class JwtStrategy {
   static verify(token: string, serectKeyJwt: string) {
     return jwt.verify(token.replace('Bearer ', ''), serectKeyJwt);
   }
+
+  static getPayload(headers) {
+    return this.decode(headers.authorization);
+  }
 }
