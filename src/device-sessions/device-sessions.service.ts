@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -17,7 +18,11 @@ import { Repository } from 'typeorm';
 import DeviceSessionEntity from './device-session.entity';
 const { randomUUID } = require('crypto');
 const EXP_SESSION = 7; // 1 week
-
+export interface LoginRespionse {
+  token: string;
+  refreshToken: string;
+  expiredAt: Date;
+}
 @ApiBearerAuth()
 @Injectable()
 export class DeviceSessionsService {
@@ -55,15 +60,49 @@ export class DeviceSessionsService {
     };
   }
 
+  async reAuth(
+    deviceId: string,
+    _refreshToken: string,
+  ): Promise<LoginRespionse> {
+    const session: any = await this.repository
+      .createQueryBuilder('session')
+      .select('session', 'user.id')
+      .leftJoinAndSelect('session.user', 'user')
+      .where('session.refreshToken = :_refreshToken', { _refreshToken })
+      .andWhere('session.deviceId = :deviceId', { deviceId })
+      .getOne();
+
+    if (
+      !session ||
+      new Date(session.expiredAt).valueOf() < new Date().valueOf()
+    ) {
+      throw new UnauthorizedException('Refresh token invalid');
+    }
+
+    const payload = {
+      id: session.user.id,
+      deviceId,
+    };
+
+    const secretKey = this.generateSecretKey();
+    const [token, refreshToken, expiredAt] = [
+      JwtStrategy.generate(payload, secretKey),
+      randomatic('Aa0', 64),
+      addDay(7),
+    ];
+
+    await this.repository.update(session.id, {
+      secretKey,
+      refreshToken,
+      expiredAt,
+    });
+    return { token, refreshToken, expiredAt };
+  }
+
   async handleDeviceSession(
     userId: string,
     metaData: LoginMetadata,
-  ): Promise<{
-    token: string;
-    refreshToken: string;
-    expiredAt: Date;
-    deviceId: string;
-  }> {
+  ): Promise<LoginRespionse> {
     const { deviceId } = metaData;
     const currentDevice = await this.repository.findOne({
       where: { deviceId },
@@ -97,11 +136,14 @@ export class DeviceSessionsService {
       id: currentDevice?.id || randomUUID(),
       ...newDeviceSession,
     });
-    return { token, refreshToken, expiredAt, deviceId };
+    return { token, refreshToken, expiredAt };
   }
 
-  async getDeviceSessions() {
+  async getDeviceSessions(userId: string) {
     return this.repository.find({
+      where: {
+        user: userId,
+      },
       select: [
         'id',
         'deviceId',

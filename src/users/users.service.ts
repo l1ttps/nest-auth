@@ -23,7 +23,7 @@ export class UsersService {
     return bcrypt.hash(password, salt);
   }
 
-  async login(loginDto: LoginDto, metaData: LoginMetadata, req) {
+  async login(loginDto: LoginDto, metaData: LoginMetadata) {
     const { email, password } = loginDto;
     const user = await this.repository.findOne({
       where: { email },
