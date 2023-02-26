@@ -16,7 +16,6 @@ export class DeviceSessionsController {
 
   @Get('')
   async getDeviceSessions(@Req() req): Promise<DeviceSessionEntity[]> {
-    console.log(req.fingerprint);
     // return req.fingerprint;
     return this.deviceSessionsService.getDeviceSessions();
   }
